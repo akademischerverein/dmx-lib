@@ -5,8 +5,9 @@ namespace DmxLib
 {
     public interface IHandler
     {
-        void Update(Device device, ReadOnlyDictionary<DeviceProperty, Object> properties, byte[] values);
+        void Update(Device device, ReadOnlyDictionary<DeviceProperty, object> properties, byte[] values);
+        bool IsValidValue(DeviceProperty property, object o);
+        ReadOnlyCollection<object> ValidValues(DeviceProperty property);
         ReadOnlyCollection<DeviceProperty> SupportedProperties { get; }
-        ReadOnlyCollection<string> SupportedGobos { get; }
     }
 }
