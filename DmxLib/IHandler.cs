@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace DmxLib
@@ -7,7 +8,7 @@ namespace DmxLib
     {
         void Update(Device device, ReadOnlyDictionary<DeviceProperty, object> properties, byte[] values);
         bool IsValidValue(DeviceProperty property, object o);
-        ReadOnlyCollection<object> ValidValues(DeviceProperty property);
+        IEnumerable<object> ValidValues(DeviceProperty property);
         ReadOnlyCollection<DeviceProperty> SupportedProperties { get; }
     }
 }

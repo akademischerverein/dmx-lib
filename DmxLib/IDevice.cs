@@ -1,4 +1,4 @@
-using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace DmxLib
@@ -7,7 +7,7 @@ namespace DmxLib
     {
         object Get(DeviceProperty property);
         void Set(DeviceProperty property, object value);
-        ReadOnlyCollection<object> ValidValues(DeviceProperty property);
+        IEnumerable<object> ValidValues(DeviceProperty property);
         ReadOnlyCollection<DeviceProperty> SupportedProperties { get; }
     }
 }

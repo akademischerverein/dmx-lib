@@ -8,9 +8,9 @@ namespace DmxLib
 {
     public class Device : IDevice
     {
-        internal DeviceGroup group;
-        internal IHandler[] handlers;
-        private readonly Dictionary<DeviceProperty, object> _properties;
+        //internal DeviceGroup group;
+        internal readonly IHandler[] handlers;
+        internal readonly Dictionary<DeviceProperty, object> _properties;
         internal Universe universe;
 
         public Device(string name, uint width, uint channel, IHandler[] handlers)
@@ -65,19 +65,16 @@ namespace DmxLib
                 throw new ArgumentException("Property not supported for this device", nameof(property));
             }
 
-            foreach (var h in handlers)
+            if (handlers.Any(h => h.SupportedProperties.Contains(property) && !h.IsValidValue(property, value)))
             {
-                if (!h.IsValidValue(property, value))
-                {
-                    throw new ArgumentException("Property value not accepted by handler", nameof(value));
-                }
+                throw new ArgumentException("Property value not accepted by handler", nameof(value));
             }
 
             _properties[property] = value;
             throw new NotImplementedException();
         }
 
-        public ReadOnlyCollection<object> ValidValues(DeviceProperty property)
+        public IEnumerable<object> ValidValues(DeviceProperty property)
         {
             var supported = new HashSet<object>();
             foreach (var h in handlers)
@@ -85,7 +82,7 @@ namespace DmxLib
                 supported.UnionWith(h.ValidValues(property));
             }
 
-            return new ReadOnlyCollection<object>(supported.ToList());
+            return supported;
         }
     }
 }
