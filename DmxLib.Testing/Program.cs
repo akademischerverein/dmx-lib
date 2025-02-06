@@ -9,8 +9,10 @@ namespace DmxLib.Testing
 {
     class Program
     {
-        private static void Main(string[] args)
+        public static void Main(string[] args)
         {
+            ProgramScene.MainScene(args);
+            return;
             Console.WriteLine("Hello World!");
             var sink = new AvSink("192.168.0.6", 5120);
             var sinkThread = new Thread(sink.Commit);

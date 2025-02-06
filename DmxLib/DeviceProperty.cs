@@ -16,7 +16,7 @@ namespace DmxLib
         public readonly string Name;
         public readonly Type Type;
         public readonly object DefaultValue;
-        public readonly Func<object, object, object> Project;
+        public readonly Func<object, object, object> Project; // groupValue, deviceValue
 
         private static readonly Dictionary<string, DeviceProperty> Registry = new Dictionary<string, DeviceProperty>();
 
