@@ -1,12 +1,13 @@
+using System;
 using System.Collections.ObjectModel;
 
 namespace DmxLib
 {
     public interface IDevice
     {
-        T GetProperty<T>(DeviceProperty property);
-        void SetProperty<T>(DeviceProperty property, T value);
+        object Get(DeviceProperty property);
+        void Set(DeviceProperty property, object value);
+        ReadOnlyCollection<object> ValidValues(DeviceProperty property);
         ReadOnlyCollection<DeviceProperty> SupportedProperties { get; }
-        ReadOnlyCollection<string> SupportedGobos { get; }
     }
 }
