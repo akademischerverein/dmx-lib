@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DmxLib", "DmxLib\DmxLib.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DmxLib.Util", "DmxLib.Util\DmxLib.Util.csproj", "{F621BA3F-B218-443A-B935-44D6B77E15BB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DmxLibTest", "DmxLibTest\DmxLibTest.csproj", "{1C029284-3F90-4295-BFD9-BE5907832E19}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DmxLib.Test", "DmxLib.Test\DmxLib.Test.csproj", "{1C029284-3F90-4295-BFD9-BE5907832E19}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
