@@ -5,29 +5,31 @@ namespace DmxLib
 {
     public class DeviceProperty
     {
-        private DeviceProperty(string name, Type type)
+        private DeviceProperty(string name, Type type, object defaultValue)
         {
             Name = name;
             Type = type;
+            DefaultValue = defaultValue;
         }
 
         public readonly string Name;
         public readonly Type Type;
+        public readonly object DefaultValue;
 
-        private static Dictionary<string, DeviceProperty> registry = new Dictionary<string, DeviceProperty>();
+        private static readonly Dictionary<string, DeviceProperty> Registry = new Dictionary<string, DeviceProperty>();
 
         public static DeviceProperty GetProperty(string name)
         {
-            return registry[name];
+            return Registry[name];
         }
 
-        public static DeviceProperty RegisterProperty(string name, Type type)
+        public static DeviceProperty RegisterProperty(string name, Type type, Object defaultValue)
         {
-            if (registry.ContainsKey(name))
+            if (Registry.ContainsKey(name))
             {
-                if (registry[name].Type == type)
+                if (Registry[name].Type == type)
                 {
-                    return registry[name];
+                    return Registry[name];
                 }
                 else
                 {
@@ -36,15 +38,15 @@ namespace DmxLib
             }
             else
             {
-                DeviceProperty property = new DeviceProperty(name, type);
-                registry[name] = property;
+                DeviceProperty property = new DeviceProperty(name, type, defaultValue);
+                Registry[name] = property;
                 return property;
             }
         }
 
         public static bool IsNameTaken(string name)
         {
-            return registry.ContainsKey(name);
+            return Registry.ContainsKey(name);
         }
     }
 }
