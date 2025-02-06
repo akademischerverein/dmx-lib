@@ -7,10 +7,15 @@ stages:
 before_script:
   - dotnet restore
 
-build:
+build debug:
   stage: build
   script:
-    - dotnet build
+    - dotnet build /t:Clean,Rebuild dmx-lib.sln /p:Configuration="Debug"
+
+build release:
+  stage: build
+  script:
+    - dotnet build /t:Clean,Rebuild dmx-lib.sln /p:Configuration="Release"
   
 test:
   stage: test
