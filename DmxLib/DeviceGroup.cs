@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace DmxLib
 {
-    public class DeviceGroup : IDevice
+    public class DeviceGroup //: IDevice
     {
         private readonly HashSet<Device> _devices;
         internal Universe Universe;
@@ -41,7 +41,7 @@ namespace DmxLib
                 throw new ArgumentException("Property not supported for this device group", nameof(property));
             }
             
-            if (IsValidValue(property, value))
+            if (!IsValidValue(property, value))
             {
                 throw new ArgumentException("Property value not accepted by devices", nameof(value));
             }
@@ -50,7 +50,7 @@ namespace DmxLib
 
             foreach (var dev in _devices)
             {
-                Universe.ApplyProperties(dev, dev.Properties);
+                //Universe.ApplyProperties(dev, dev.Properties);
             }
         }
         
@@ -67,8 +67,7 @@ namespace DmxLib
 
         public bool IsValidValue(DeviceProperty property, object o)
         {
-            return _devices.Where(d => d.SupportedProperties.Contains(property))
-                .Select(d => d.IsValidValue(property, o)).All(b => b);
+            return _devices.Where(d => d.SupportedProperties.Contains(property)).All(d => d.IsValidValue(property, o));
         }
     }
 }

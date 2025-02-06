@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
@@ -10,5 +11,10 @@ namespace DmxLib
         IEnumerable<object> ValidValues(DeviceProperty property);
         bool IsValidValue(DeviceProperty property, object o);
         ReadOnlyCollection<DeviceProperty> SupportedProperties { get; }
+        string Name { get; }
+        IEnumerable<IDevice> Children { get; }
+        IEnumerable<IDevice> AllChildren { get; }
+        List<uint> Channels { get; }
+        Universe.ApplyPropertiesDelegate ApplyEvent { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -9,10 +10,8 @@ namespace DmxLib
 {
     public class Device : IDevice
     {
-        internal DeviceGroup Group;
-        internal readonly IHandler[] Handlers;
-        internal readonly Dictionary<DeviceProperty, object> Properties;
-        internal Universe Universe;
+        private readonly IHandler[] _handlers;
+        private readonly Dictionary<DeviceProperty, object> _properties;
 
         public Device(string name, uint width, uint channel, IHandler[] handlers)
         {
@@ -27,22 +26,26 @@ namespace DmxLib
             }
 
             Name = name;
-            Width = width;
-            Channel = channel;
-            Properties = new Dictionary<DeviceProperty, object>();
-            Handlers = handlers;
+            for (var i = channel; i < channel + width; i++)
+            {
+                Channels.Add(i);
+            }
+            _properties = new Dictionary<DeviceProperty, object>();
+            _handlers = handlers;
 
-            Properties = handlers.SelectMany(h => h.SupportedProperties).Distinct().ToDictionary(p => p, p => p.DefaultValue);
+            _properties = handlers.SelectMany(h => h.SupportedProperties).Distinct().ToDictionary(p => p, p => p.DefaultValue);
         }
+        public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(_properties.Keys.ToList());
+        public string Name { get; }
+        public IEnumerable<IDevice> Children => new List<IDevice>();
+        public IEnumerable<IDevice> AllChildren => new List<IDevice>();
+        public List<uint> Channels { get; } = new List<uint>();
 
-        public readonly string Name;
-        public readonly uint Width;
-        public readonly uint Channel;
-        public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(Properties.Keys.ToList());
+        public Universe.ApplyPropertiesDelegate ApplyEvent { get; set; }
 
         public object Get(DeviceProperty property)
         {
-            return Properties[property];
+            return _properties[property];
         }
 
         public void Set(DeviceProperty property, object value)
@@ -52,24 +55,31 @@ namespace DmxLib
                 throw new ArgumentException("Property value of illegal type", nameof(value));
             }
 
-            if (!Properties.ContainsKey(property))
+            if (!_properties.ContainsKey(property))
             {
                 throw new ArgumentException("Property not supported for this device", nameof(property));
             }
 
-            if (Handlers.Any(h => h.SupportedProperties.Contains(property) && !h.IsValidValue(property, value)))
+            if (_handlers.Any(h => h.SupportedProperties.Contains(property) && !h.IsValidValue(property, value)))
             {
                 throw new ArgumentException("Property value not accepted by handler", nameof(value));
             }
 
-            Properties[property] = value;
-            Universe.ApplyProperties(this, Properties);
+            _properties[property] = value;
+            var values = new byte[Channels.Count()];
+
+            foreach (var h in _handlers)
+            {
+                h.Update(this, new ReadOnlyDictionary<DeviceProperty, object>(_properties), values);
+            }
+
+            ApplyEvent(this, values);
         }
 
         public IEnumerable<object> ValidValues(DeviceProperty property)
         {
             var supported = new HashSet<object>();
-            foreach (var h in Handlers)
+            foreach (var h in _handlers)
             {
                 if (h.SupportedProperties.Contains(property))
                 {
@@ -82,8 +92,8 @@ namespace DmxLib
 
         public bool IsValidValue(DeviceProperty property, object o)
         {
-            return Handlers.Where(h => h.SupportedProperties.Contains(property)).Select(h => h.IsValidValue(property, o))
-                .Any();
+            var ret =  _handlers.Where(h => h.SupportedProperties.Contains(property)).All(h => h.IsValidValue(property, o));
+            return ret;
         }
     }
 }

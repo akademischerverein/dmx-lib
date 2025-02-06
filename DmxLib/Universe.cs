@@ -8,186 +8,96 @@ namespace DmxLib
 {
     public class Universe
     {
-        private HashSet<Device> devices = new HashSet<Device>();
-        private HashSet<DeviceGroup> groups = new HashSet<DeviceGroup>();
-        //groups
-        private ISink sink;
-        private byte[] values;
-        
+        private readonly ISink _sink;
+        private byte[] _values;
+        private readonly Dictionary<uint, IDevice> _channels = new Dictionary<uint, IDevice>();
+
         public Universe(uint numChannels, ISink sink)
         {
             Size = numChannels;
-            this.sink = sink;
-            values = new byte[numChannels];
+            _sink = sink;
+            _values = new byte[numChannels];
+            Devices = new HashSet<IDevice>();
+            Hooks = _dummyApply;
             //todo scene
-            //todo hooks
         }
 
         public uint Size { get; }
-        public HashSet<Device> Devices => devices;
-        public HashSet<DeviceGroup> Groups => groups;
+        public HashSet<IDevice> Devices { get; }
 
-        public void AddDevice(Device device)
+        public delegate void ApplyEvent(Universe universe, ref byte[] values);
+
+        public delegate void ApplyPropertiesDelegate(IDevice device, byte[] values);
+
+        public ApplyEvent Hooks;
+
+        private static void _dummyApply(Universe universe, ref byte[] values) {}
+
+        public void AddDevice(IDevice device)
         {
-            if (devices.Contains(device))
+            if (Devices.Contains(device) || Devices.SelectMany(d => d.AllChildren).Contains(device))
             {
                 throw new ArgumentException("Device already part of this universe", nameof(device));
             }
 
-            if ((device.Channel + device.Width) > Size)
+            if (device.Channels.Any(ch => ch > Size))
             {
                 throw new ArgumentException("Device doesn't fit in this universe");
             }
 
-            if (device.Universe != null)
+            if (device.ApplyEvent != null)
             {
                 throw new ArgumentException("Device already belongs to a universe");
             }
-            
-            var occupiedChs = new HashSet<uint>();
-            foreach (var dev in devices)
+
+            if (device.Channels.Any(ch => _channels.ContainsKey(ch)))
             {
-                for (var i = dev.Channel; i < dev.Channel+dev.Width; i++)
-                {
-                    occupiedChs.Add(i);
-                }
+                throw new ArgumentException("Channel conflict detected");
             }
 
-            for (var i = device.Channel; i < device.Channel + device.Width; i++)
+            foreach (var ch in device.Channels)
             {
-                if (occupiedChs.Contains(i))
-                {
-                    throw new ArgumentException(string.Format("Channel %i is already occupied", i));
-                }
+                _channels[ch] = device;
             }
 
-            devices.Add(device);
-            device.Universe = this;
-            ApplyProperties(device, device.Properties);
+            Devices.Add(device);
+            device.ApplyEvent = ApplyProperties;
+            //todo: apply properties on addition
         }
 
-        public void AddGroup(DeviceGroup group)
+        public void RemoveDevice(IDevice device)
         {
-            if (groups.Contains(group))
+            if (!Devices.Contains(device)) return;
+            Devices.Remove(device);
+            foreach (var ch in device.Channels)
             {
-                throw new ArgumentException("Group already part of this universe", nameof(group));
-            }
-            
-            if (group.Universe != null)
-            {
-                throw new ArgumentException("Group already belongs to a universe");
+                _channels.Remove(ch);
             }
 
-            if (group.Devices.Select(d => d.Group).Any(g => g != null))
-            {
-                throw new ArgumentException("No device must have an active group");
-            }
-
-            foreach (var dev in group.Devices)
-            {
-                dev.Group = group;
-            }
-
-            group.Universe = this;
-            groups.Add(group);
+            device.ApplyEvent = null;
         }
 
-        public void RemoveDevice(Device device)
+        public IDevice GetDeviceByChannel(uint channel)
         {
-            if (device.Universe == this)
-            {
-                device.Universe = null;
-            }
-
-            devices.Remove(device);
+            return _channels.ContainsKey(channel) ? _channels[channel] : null;
         }
 
-        public void RemoveGroup(DeviceGroup group)
+        public void ApplyProperties(IDevice device, byte[] deviceValues)
         {
-            if (group.Universe == this)
-            {
-                group.Universe = null;
-                foreach (var dev in group.Devices)
-                {
-                    dev.Group = null;
-                }
-            }
-
-            groups.Remove(group);
-        }
-
-        public Device GetDeviceByChannel(uint channel)
-        {
-            foreach (var dev in devices)
-            {
-                for (var i = dev.Channel; i < dev.Channel + dev.Width; i++)
-                {
-                    if (i == channel)
-                    {
-                        return dev;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public void ApplyProperties(Device device, Dictionary<DeviceProperty, object> properties)
-        {
-            if (!devices.Contains(device))
+            if (!Devices.Contains(device))
             {
                 throw new ArgumentException("Specified device not in universe", nameof(device));
             }
 
-            var devValues = new byte[device.Width];
-            var props = new Dictionary<DeviceProperty, object>(properties);
+            var channels = device.Channels.ToArray();
 
-            if (device.Group != null)
+            for (uint i = 0; i < deviceValues.Length; i++)
             {
-                foreach (var prop in props.Keys)
-                {
-                    if (prop.Type == typeof(Color))
-                    {
-                        var c = (Color)device.Group.Properties[prop];
-
-                        if (c.R != 0.0 || c.G != 0.0 || c.B != 0.0)
-                        {
-                            props[prop] = c;
-                        }
-                    } else if (prop.Type == typeof(Vector2f))
-                    {
-                        var gPos = (Vector2f)device.Group.Properties[prop];
-                        var dPos = (Vector2f)device.Properties[prop];
-                        props[prop] = new Vector2f(gPos.X + dPos.X, gPos.Y + dPos.Y);
-                    } else if (prop.Type == typeof(double) || prop.Type == typeof(float))
-                    {
-                        props[prop] = (double)props[prop] * (double)device.Group.Properties[prop];
-                    } else if (prop.Type == typeof(bool))
-                    {
-                        props[prop] = (bool) props[prop] || (bool) device.Group.Properties[prop];
-                    }
-                    else
-                    {
-                        if (device.Group.Properties[prop] != null)
-                        {
-                            props[prop] = device.Group.Properties[prop];
-                        }
-                    }
-                }
+                _values[channels[i] - 1] = deviceValues[i];
             }
 
-            var handleProps = new ReadOnlyDictionary<DeviceProperty, object>(props);
-            foreach (var h in device.Handlers)
-            {
-                h.Update(device, handleProps, devValues);
-            }
-
-            for (uint i = 0; i < device.Width; i++)
-            {
-                values[i + device.Channel - 1] = devValues[i];
-            }
-            //todo hooks
-            sink.Update(this, values);
+            Hooks?.Invoke(this, ref _values);
+            _sink.Update(this, _values);
         }
     }
 }
