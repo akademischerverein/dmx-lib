@@ -79,7 +79,13 @@ namespace DmxLib
 
         public ReadOnlyCollection<object> ValidValues(DeviceProperty property)
         {
-            throw new NotImplementedException();
+            var supported = new HashSet<object>();
+            foreach (var h in handlers)
+            {
+                supported.UnionWith(h.ValidValues(property));
+            }
+
+            return new ReadOnlyCollection<object>(supported.ToList());
         }
     }
 }
