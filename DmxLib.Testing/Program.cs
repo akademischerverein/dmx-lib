@@ -9,7 +9,7 @@ namespace DmxLib.Testing
 {
     class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
             var sink = new AvSink("192.168.0.6", 5120);
@@ -24,11 +24,11 @@ namespace DmxLib.Testing
             {
                 if (l.StartsWith("#") || l.Trim().Length == 0)
                     continue;
-                var ch = UInt32.Parse(l.Split(";")[0].Trim());
+                var ch = uint.Parse(l.Split(";")[0].Trim());
                 var typeInfo = l.Split(";")[1].Trim();
                 var group = l.Split(";")[2].Trim();
                 var name = l.Split(";")[3].Trim();
-                var width = UInt32.Parse(typeInfo.Split(':')[0]);
+                var width = uint.Parse(typeInfo.Split(':')[0]);
                 var typ = typeInfo.Split(':')[1];
 
                 if (!tempGroups.ContainsKey(group))
@@ -42,14 +42,14 @@ namespace DmxLib.Testing
                     case "RGBW":
                     case "DRGB":
                         var devColor = new Device(name, width, ch, new IHandler[]{new RgbHandler(typ.ToLower())});
-                        uni.AddDevice(devColor);
+                        //uni.AddDevice(devColor);
                         devices.Add(devColor);
                         tempGroups[group].Add(devColor);
                         break;
                     case "Dimmer":
                     case "Blinder":
                         var devDimming = new Device(name, width, ch, new IHandler[]{new DimmerHandler(0)});
-                        uni.AddDevice(devDimming);
+                        //uni.AddDevice(devDimming);
                         devices.Add(devDimming);
                         devDimming.Set(PropertyDimming, 0.0);
                         tempGroups[group].Add(devDimming);
@@ -60,12 +60,13 @@ namespace DmxLib.Testing
             var groups = new List<DeviceGroup>();
             foreach (var devs in tempGroups)
             {
-                //var devGroup = new DeviceGroup(devs.Key, devs.Value);
-                //groups.Add(devGroup);
-                //uni.AddGroup(devGroup);
+                if (devs.Value.Count == 0) continue;
+                var devGroup = new DeviceGroup(devs.Key, devs.Value);
+                groups.Add(devGroup);
+                uni.AddDevice(devGroup);
             }
 
-            foreach (var dev in uni.Devices)
+            foreach (var dev in devices)
             {
                 Console.WriteLine("Device ch={0} name={3} {1} width={2}", dev.Channels.First(), dev.Name, dev.Channels.Count, tempGroups.Where(l => l.Value.Contains(dev)).First().Key);
             }
@@ -73,7 +74,7 @@ namespace DmxLib.Testing
             for (var i=0; i<groups.Count; i++)
             {
                 var group = groups[i];
-                Console.WriteLine("{0}: DeviceGroup size={1} name={2}", i, group.Devices.Count, group.Name);
+                Console.WriteLine("{0}: DeviceGroup size={1} name={2}", i, group.Children.Count(), group.Name);
             }
 
             sinkThread.Start();
@@ -83,36 +84,38 @@ namespace DmxLib.Testing
                 Console.Write("ch: ");
                 var selector = Console.ReadLine();
                 IDevice dev;
-                //if (selector.StartsWith("g"))
-                //{
-                //    dev = groups[int.Parse(selector.Substring(1))];
-                //}
-                //else
+                if (selector.StartsWith("g"))
                 {
-                    dev = uni.GetDeviceByChannel(uint.Parse(selector));   
+                    dev = groups[int.Parse(selector.Substring(1))];
+                }
+                else
+                {
+                    var ch = uint.Parse(selector);
+                    dev = devices.Find(d => d.Channels.Contains(ch));
                 }
 
                 if (dev.SupportedProperties.Contains(PropertyColor))
                 {
                     Console.Write("r: ");
-                    var r = Double.Parse(Console.ReadLine());
+                    var r = double.Parse(Console.ReadLine());
                     Console.Write("g: ");
-                    var g = Double.Parse(Console.ReadLine());
+                    var g = double.Parse(Console.ReadLine());
                     Console.Write("b: ");
-                    var b = Double.Parse(Console.ReadLine());
+                    var b = double.Parse(Console.ReadLine());
                     dev.Set(PropertyColor, Color.FromRGB(r, g, b));
                 }
 
                 if (dev.SupportedProperties.Contains(PropertyDimming))
                 {
                     Console.Write("d: ");
-                    double d = Double.Parse(Console.ReadLine());
+                    var d = double.Parse(Console.ReadLine());
                     dev.Set(PropertyDimming, d);   
                 }
             }
         }
 
-        public static readonly DeviceProperty PropertyColor = DeviceProperty.RegisterProperty("color", typeof(Color), Color.FromRGB(0, 0, 0));
-        public static readonly DeviceProperty PropertyDimming = DeviceProperty.RegisterProperty("dimming", typeof(double), 1.0);
+        public static readonly DeviceProperty PropertyColor = DeviceProperty.RegisterProperty("color",
+            typeof(Color), Color.FromRGB(0, 0, 0), (g, d) => ((Color)g).R != 0 || ((Color)g).G != 0 || ((Color)g).B != 0 ? g : d);
+        public static readonly DeviceProperty PropertyDimming = DeviceProperty.RegisterProperty("dimming", typeof(double), 1.0, (g, d) => (double)g * (double)d);
     }
 }
