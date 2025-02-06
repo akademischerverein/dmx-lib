@@ -82,7 +82,7 @@ namespace DmxLib
             return _channels.ContainsKey(channel) ? _channels[channel] : null;
         }
 
-        public void ApplyProperties(IDevice device, byte[] deviceValues)
+        private void ApplyProperties(IDevice device, byte[] deviceValues)
         {
             if (!Devices.Contains(device))
             {

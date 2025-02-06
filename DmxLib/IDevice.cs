@@ -10,6 +10,7 @@ namespace DmxLib
         void Set(DeviceProperty property, object value);
         IEnumerable<object> ValidValues(DeviceProperty property);
         bool IsValidValue(DeviceProperty property, object o);
+        byte[] ApplyProperties(ReadOnlyDictionary<DeviceProperty, object> properties);
         ReadOnlyCollection<DeviceProperty> SupportedProperties { get; }
         string Name { get; }
         IEnumerable<IDevice> Children { get; }

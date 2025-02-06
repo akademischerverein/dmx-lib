@@ -35,6 +35,18 @@ namespace DmxLib
 
             _properties = handlers.SelectMany(h => h.SupportedProperties).Distinct().ToDictionary(p => p, p => p.DefaultValue);
         }
+
+        public byte[] ApplyProperties(ReadOnlyDictionary<DeviceProperty, object> properties)
+        {
+            var values = new byte[Channels.Count()];
+            foreach (var h in _handlers)
+            {
+                h.Update(this, properties, values);
+            }
+
+            return values;
+        }
+
         public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(_properties.Keys.ToList());
         public string Name { get; }
         public IEnumerable<IDevice> Children => new List<IDevice>();
@@ -66,14 +78,8 @@ namespace DmxLib
             }
 
             _properties[property] = value;
-            var values = new byte[Channels.Count()];
-
-            foreach (var h in _handlers)
-            {
-                h.Update(this, new ReadOnlyDictionary<DeviceProperty, object>(_properties), values);
-            }
-
-            ApplyEvent(this, values);
+            var values = ApplyProperties(new ReadOnlyDictionary<DeviceProperty, object>(_properties));
+            ApplyEvent?.Invoke(this, values);
         }
 
         public IEnumerable<object> ValidValues(DeviceProperty property)

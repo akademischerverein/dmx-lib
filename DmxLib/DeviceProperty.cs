@@ -5,16 +5,18 @@ namespace DmxLib
 {
     public class DeviceProperty
     {
-        private DeviceProperty(string name, Type type, object defaultValue)
+        private DeviceProperty(string name, Type type, object defaultValue, Func<object, object, object> projection)
         {
             Name = name;
             Type = type;
             DefaultValue = defaultValue;
+            Project = projection;
         }
 
         public readonly string Name;
         public readonly Type Type;
         public readonly object DefaultValue;
+        public readonly Func<object, object, object> Project;
 
         private static readonly Dictionary<string, DeviceProperty> Registry = new Dictionary<string, DeviceProperty>();
 
@@ -23,11 +25,16 @@ namespace DmxLib
             return Registry[name];
         }
 
-        public static DeviceProperty RegisterProperty(string name, Type type, Object defaultValue)
+        public static DeviceProperty RegisterProperty(string name, Type type, object defaultValue)
+        {
+            return RegisterProperty(name, type, defaultValue, (g, d) => g);
+        }
+
+        public static DeviceProperty RegisterProperty(string name, Type type, object defaultValue, Func<object, object, object> projection)
         {
             if (Registry.ContainsKey(name))
             {
-                if (Registry[name].Type == type && Registry[name].DefaultValue == defaultValue)
+                if (Registry[name].Type == type && Registry[name].DefaultValue == defaultValue) //cant compare lambdas
                 {
                     return Registry[name];
                 }
@@ -38,7 +45,7 @@ namespace DmxLib
             }
             else
             {
-                DeviceProperty property = new DeviceProperty(name, type, defaultValue);
+                var property = new DeviceProperty(name, type, defaultValue, projection);
                 Registry[name] = property;
                 return property;
             }
