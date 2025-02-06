@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using DmxLib.Util;
 
 namespace DmxLib
@@ -8,8 +10,7 @@ namespace DmxLib
     {
         internal DeviceGroup group;
         internal IHandler[] handlers;
-        private Dictionary<DeviceProperty, Object> properties;
-        private HashSet<string> gobos;
+        private readonly Dictionary<DeviceProperty, object> _properties;
         internal Universe universe;
 
         public Device(string name, uint width, uint channel, IHandler[] handlers)
@@ -27,84 +28,57 @@ namespace DmxLib
             Name = name;
             Width = width;
             Channel = channel;
-            properties = new Dictionary<DeviceProperty, object>();
-            gobos = new HashSet<string>();
+            _properties = new Dictionary<DeviceProperty, object>();
             this.handlers = handlers;
 
             foreach (var h in handlers)
             {
                 foreach (var prop in h.SupportedProperties)
                 {
-                    if (!properties.ContainsKey(prop))
+                    if (!_properties.ContainsKey(prop))
                     {
-                        switch (prop)
-                        {
-                            case DeviceProperty.Color:
-                                properties[DeviceProperty.Color] = Color.FromRGB(0, 0, 0);
-                                break;
-                            case DeviceProperty.Dimming:
-                                properties[DeviceProperty.Dimming] = (double) 0.0;
-                                break;
-                            case DeviceProperty.Gobo:
-                                properties[DeviceProperty.Gobo] = null;
-                                break;
-                            case DeviceProperty.Shutter:
-                                properties[DeviceProperty.Shutter] = false;
-                                break;
-                            case DeviceProperty.PosXY:
-                                properties[DeviceProperty.PosXY] = new Vector2f(0, 0);
-                                break;
-                        }
+                        _properties[prop] = prop.DefaultValue;
                     }
                 }
+            }
+        }
 
-                if (h.SupportedProperties.Contains(DeviceProperty.Gobo))
+        public readonly string Name;
+        public readonly uint Width;
+        public readonly uint Channel;
+        public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(_properties.Keys.ToList());
+
+        public object Get(DeviceProperty property)
+        {
+            return _properties[property];
+        }
+
+        public void Set(DeviceProperty property, object value)
+        {
+            if (!property.Type.IsInstanceOfType(value))
+            {
+                throw new ArgumentException("Property value of illegal type", nameof(value));
+            }
+
+            if (!_properties.ContainsKey(property))
+            {
+                throw new ArgumentException("Property not supported for this device", nameof(property));
+            }
+
+            foreach (var h in handlers)
+            {
+                if (!h.IsValidValue(property, value))
                 {
-                    gobos.UnionWith(h.SupportedGobos);
+                    throw new ArgumentException("Property value not accepted by handler", nameof(value));
                 }
             }
-        }
-        
-        public string Name { get; }
-        public uint Width { get; }
-        public uint Channel { get; }
 
-        public Color Color
-        {
-            get;
-            set
-            {
-                
-            }
+            _properties[property] = value;
+            throw new NotImplementedException();
         }
 
-        public T GetProperty<T>(DeviceProperty property)
+        public ReadOnlyCollection<object> ValidValues(DeviceProperty property)
         {
-            return (T)properties[property];
-        }
-
-        public void SetProperty<T>(DeviceProperty property, T value)
-        {
-            if (property == DeviceProperty.Color && typeof(T) != typeof(Color))
-            {
-                throw new ArgumentException("Color must be of type DmxLib.Util.Color", nameof(value));
-            }
-            if (property == DeviceProperty.Dimming && typeof(T) != typeof(double))
-            {
-                throw new ArgumentException("Dimming must be of type double", nameof(value));
-            }
-            if (property == DeviceProperty.Gobo && (typeof(T) != typeof(string) && value != null))
-            {
-                throw new ArgumentException("Dimming must be of type double", nameof(value));
-            }
-            if (property == DeviceProperty.Dimming && typeof(T) != typeof(double))
-            {
-                throw new ArgumentException("Dimming must be of type double", nameof(value));
-            }
-            if (property == DeviceProperty.Dimming && typeof(T) != typeof(double))
-            {
-                throw new ArgumentException("Dimming must be of type double", nameof(value));
-            }
             throw new NotImplementedException();
         }
     }
