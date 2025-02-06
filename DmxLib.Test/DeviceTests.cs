@@ -5,15 +5,15 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace DmxLib.Test
 {
     [TestClass]
-    public class DeviceTestsID
+    public class DeviceTests
     {
         [TestMethod]
         public void TestCorrect()
         {
             var dev1 = new Device("Device 1", 1, 5, new IHandler[]{new DummyHandler()});
             Assert.AreEqual("Device 1", dev1.Name);
-            Assert.AreEqual(5u, dev1.Channel);
-            Assert.AreEqual(1u, dev1.Width);
+            CollectionAssert.AreEquivalent(new uint[]{5u}, dev1.Channels.ToArray());
+            Assert.AreEqual(1, dev1.Channels.Count);
             Assert.AreEqual(1, dev1.SupportedProperties.Count);
             Assert.IsTrue(dev1.SupportedProperties.Contains(DummyHandler.testProp));
             CollectionAssert.AreEquivalent(new object[]{(uint)0, (uint)2, (uint)4, (uint)6}, dev1.ValidValues(DummyHandler.testProp).ToArray());
