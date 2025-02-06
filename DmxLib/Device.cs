@@ -71,7 +71,10 @@ namespace DmxLib
             var supported = new HashSet<object>();
             foreach (var h in Handlers)
             {
-                supported.UnionWith(h.ValidValues(property));
+                if (h.SupportedProperties.Contains(property))
+                {
+                    supported.UnionWith(h.ValidValues(property));
+                }
             }
 
             return supported;
