@@ -27,7 +27,7 @@ namespace DmxLib
         {
             if (Registry.ContainsKey(name))
             {
-                if (Registry[name].Type == type)
+                if (Registry[name].Type == type && Registry[name].DefaultValue == defaultValue)
                 {
                     return Registry[name];
                 }

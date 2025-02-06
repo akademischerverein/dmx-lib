@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DmxLib", "DmxLib\DmxLib.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DmxLib.Util", "DmxLib.Util\DmxLib.Util.csproj", "{F621BA3F-B218-443A-B935-44D6B77E15BB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DmxLibTest", "DmxLibTest\DmxLibTest.csproj", "{1C029284-3F90-4295-BFD9-BE5907832E19}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{F621BA3F-B218-443A-B935-44D6B77E15BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F621BA3F-B218-443A-B935-44D6B77E15BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F621BA3F-B218-443A-B935-44D6B77E15BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C029284-3F90-4295-BFD9-BE5907832E19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C029284-3F90-4295-BFD9-BE5907832E19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C029284-3F90-4295-BFD9-BE5907832E19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C029284-3F90-4295-BFD9-BE5907832E19}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

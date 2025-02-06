@@ -8,6 +8,7 @@ namespace DmxLib
         object Get(DeviceProperty property);
         void Set(DeviceProperty property, object value);
         IEnumerable<object> ValidValues(DeviceProperty property);
+        bool IsValidValue(DeviceProperty property, object o);
         ReadOnlyCollection<DeviceProperty> SupportedProperties { get; }
     }
 }

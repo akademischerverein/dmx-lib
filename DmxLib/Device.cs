@@ -2,16 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text.RegularExpressions;
 using DmxLib.Util;
 
 namespace DmxLib
 {
     public class Device : IDevice
     {
-        //internal DeviceGroup group;
-        internal readonly IHandler[] handlers;
-        internal readonly Dictionary<DeviceProperty, object> _properties;
-        internal Universe universe;
+        internal DeviceGroup Group;
+        internal readonly IHandler[] Handlers;
+        internal readonly Dictionary<DeviceProperty, object> Properties;
+        internal Universe Universe;
 
         public Device(string name, uint width, uint channel, IHandler[] handlers)
         {
@@ -28,29 +29,20 @@ namespace DmxLib
             Name = name;
             Width = width;
             Channel = channel;
-            _properties = new Dictionary<DeviceProperty, object>();
-            this.handlers = handlers;
+            Properties = new Dictionary<DeviceProperty, object>();
+            Handlers = handlers;
 
-            foreach (var h in handlers)
-            {
-                foreach (var prop in h.SupportedProperties)
-                {
-                    if (!_properties.ContainsKey(prop))
-                    {
-                        _properties[prop] = prop.DefaultValue;
-                    }
-                }
-            }
+            Properties = handlers.SelectMany(h => h.SupportedProperties).Distinct().ToDictionary(p => p, p => p.DefaultValue);
         }
 
         public readonly string Name;
         public readonly uint Width;
         public readonly uint Channel;
-        public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(_properties.Keys.ToList());
+        public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(Properties.Keys.ToList());
 
         public object Get(DeviceProperty property)
         {
-            return _properties[property];
+            return Properties[property];
         }
 
         public void Set(DeviceProperty property, object value)
@@ -60,29 +52,35 @@ namespace DmxLib
                 throw new ArgumentException("Property value of illegal type", nameof(value));
             }
 
-            if (!_properties.ContainsKey(property))
+            if (!Properties.ContainsKey(property))
             {
                 throw new ArgumentException("Property not supported for this device", nameof(property));
             }
 
-            if (handlers.Any(h => h.SupportedProperties.Contains(property) && !h.IsValidValue(property, value)))
+            if (Handlers.Any(h => h.SupportedProperties.Contains(property) && !h.IsValidValue(property, value)))
             {
                 throw new ArgumentException("Property value not accepted by handler", nameof(value));
             }
 
-            _properties[property] = value;
-            throw new NotImplementedException();
+            Properties[property] = value;
+            Universe.ApplyProperties(this, Properties);
         }
 
         public IEnumerable<object> ValidValues(DeviceProperty property)
         {
             var supported = new HashSet<object>();
-            foreach (var h in handlers)
+            foreach (var h in Handlers)
             {
                 supported.UnionWith(h.ValidValues(property));
             }
 
             return supported;
+        }
+
+        public bool IsValidValue(DeviceProperty property, object o)
+        {
+            return Handlers.Where(h => h.SupportedProperties.Contains(property)).Select(h => h.IsValidValue(property, o))
+                .Any();
         }
     }
 }
