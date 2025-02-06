@@ -14,10 +14,10 @@ namespace DmxLib
         {
             Name = name;
             _devices = new HashSet<IDevice>(devices);
-            AllChildren = _devices.SelectMany(d => d.AllChildren).Union(_devices).Distinct();
+            AllChildren = new ReadOnlyCollection<IDevice>(_devices.SelectMany(d => d.AllChildren).Union(_devices).Distinct().ToList());
             _properties = _devices.SelectMany(d => d.SupportedProperties).Distinct().ToDictionary(p => p, p => p.DefaultValue);
-            Channels = _devices.SelectMany(d => d.Channels).ToList();
-            if (Channels.Count != Channels.Distinct().Count())
+            Channels = new ReadOnlyCollection<uint>(_devices.SelectMany(d => d.Channels).ToList());
+            if (Channels.Count() != Channels.Distinct().Count())
             {
                 throw new ArgumentException("Channel can only be assigned to one device");
             }
@@ -29,14 +29,13 @@ namespace DmxLib
         }
         
         public string Name { get; }
-        public IEnumerable<IDevice> Children => new ReadOnlyCollection<IDevice>(_devices.ToList());
-        public IEnumerable<IDevice> AllChildren { get; }
-        public List<uint> Channels { get; }
+        public ReadOnlyCollection<IDevice> Children => new ReadOnlyCollection<IDevice>(_devices.ToList());
+        public ReadOnlyCollection<IDevice> AllChildren { get; }
+        public ReadOnlyCollection<uint> Channels { get; }
         public Universe.ApplyPropertiesDelegate ApplyEvent { get; set; }
-        public byte[] ApplyProperties(ReadOnlyDictionary<DeviceProperty, object> properties)
+        public ReadOnlyDictionary<uint, byte> ApplyProperties(ReadOnlyDictionary<DeviceProperty, object> properties)
         {
-            var values = new byte[Channels.Count];
-            uint i = 0;
+            var values = new Dictionary<uint, byte>();
             foreach (var dev in _devices)
             {
                 var props = dev.SupportedProperties.ToDictionary(p => p, p => dev.Get(p));
@@ -50,13 +49,13 @@ namespace DmxLib
                 }
 
                 var devValues = dev.ApplyProperties(new ReadOnlyDictionary<DeviceProperty, object>(props));
-                for (var j = 0; j < devValues.Length; j++)
+                foreach (var ch in dev.Channels)
                 {
-                    values[i++] = devValues[j];
+                    values[ch] = devValues[ch];
                 }
             }
 
-            return values;
+            return new ReadOnlyDictionary<uint, byte>(values);
         }
 
         public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(_properties.Keys.ToList());
@@ -66,7 +65,7 @@ namespace DmxLib
             return _properties[property];
         }
 
-        private void ChildUpdated(IDevice device, byte[] deviceValues)
+        private void ChildUpdated(IDevice device, ReadOnlyDictionary<uint, byte> deviceValues)
         {
             var values = ApplyProperties(new ReadOnlyDictionary<DeviceProperty, object>(_properties));
             ApplyEvent(this, values);
@@ -94,7 +93,7 @@ namespace DmxLib
             ApplyEvent(this, values);
         }
         
-        public IEnumerable<object> ValidValues(DeviceProperty property)
+        public ReadOnlyCollection<object> ValidValues(DeviceProperty property)
         {
             var supported = new HashSet<object>(_devices.First().ValidValues(property));
             foreach (var d in _devices)
@@ -102,7 +101,7 @@ namespace DmxLib
                 supported.IntersectWith(d.ValidValues(property));
             }
 
-            return supported;
+            return new ReadOnlyCollection<object>(supported.ToList());
         }
 
         public bool IsValidValue(DeviceProperty property, object o)

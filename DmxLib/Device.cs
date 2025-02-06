@@ -12,6 +12,7 @@ namespace DmxLib
     {
         private readonly IHandler[] _handlers;
         private readonly Dictionary<DeviceProperty, object> _properties;
+        private readonly List<uint> _channels;
 
         public Device(string name, uint width, uint channel, IHandler[] handlers)
         {
@@ -26,9 +27,10 @@ namespace DmxLib
             }
 
             Name = name;
+            _channels = new List<uint>();
             for (var i = channel; i < channel + width; i++)
             {
-                Channels.Add(i);
+                _channels.Add(i);
             }
             _properties = new Dictionary<DeviceProperty, object>();
             _handlers = handlers;
@@ -36,22 +38,26 @@ namespace DmxLib
             _properties = handlers.SelectMany(h => h.SupportedProperties).Distinct().ToDictionary(p => p, p => p.DefaultValue);
         }
 
-        public byte[] ApplyProperties(ReadOnlyDictionary<DeviceProperty, object> properties)
+        public ReadOnlyDictionary<uint, byte> ApplyProperties(ReadOnlyDictionary<DeviceProperty, object> properties)
         {
-            var values = new byte[Channels.Count()];
+            var values = new Dictionary<uint, byte>();
+            foreach (var ch in Channels)
+            {
+                values[ch] = 0;
+            }
             foreach (var h in _handlers)
             {
                 h.Update(this, properties, values);
             }
 
-            return values;
+            return new ReadOnlyDictionary<uint, byte>(values);
         }
 
         public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(_properties.Keys.ToList());
         public string Name { get; }
-        public IEnumerable<IDevice> Children => new List<IDevice>();
-        public IEnumerable<IDevice> AllChildren => new List<IDevice>();
-        public List<uint> Channels { get; } = new List<uint>();
+        public ReadOnlyCollection<IDevice> Children => new ReadOnlyCollection<IDevice>(new List<IDevice>());
+        public ReadOnlyCollection<IDevice> AllChildren => new ReadOnlyCollection<IDevice>(new List<IDevice>());
+        public ReadOnlyCollection<uint> Channels => new ReadOnlyCollection<uint>(_channels);
 
         public Universe.ApplyPropertiesDelegate ApplyEvent { get; set; }
 
@@ -82,7 +88,7 @@ namespace DmxLib
             ApplyEvent?.Invoke(this, values);
         }
 
-        public IEnumerable<object> ValidValues(DeviceProperty property)
+        public ReadOnlyCollection<object> ValidValues(DeviceProperty property)
         {
             var supported = new HashSet<object>();
             foreach (var h in _handlers)
@@ -93,7 +99,7 @@ namespace DmxLib
                 }
             }
 
-            return supported;
+            return new ReadOnlyCollection<object>(supported.ToList());
         }
 
         public bool IsValidValue(DeviceProperty property, object o)

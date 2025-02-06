@@ -19,7 +19,6 @@ namespace DmxLib
             _values = new byte[numChannels];
             Devices = new HashSet<IDevice>();
             Hooks = _dummyApply;
-            //todo scene
         }
 
         public uint Size { get; }
@@ -27,7 +26,7 @@ namespace DmxLib
 
         public delegate void ApplyEvent(Universe universe, ref byte[] values);
 
-        public delegate void ApplyPropertiesDelegate(IDevice device, byte[] values);
+        public delegate void ApplyPropertiesDelegate(IDevice device, ReadOnlyDictionary<uint, byte> values);
 
         public ApplyEvent Hooks;
 
@@ -82,18 +81,17 @@ namespace DmxLib
             return _channels.ContainsKey(channel) ? _channels[channel] : null;
         }
 
-        private void ApplyProperties(IDevice device, byte[] deviceValues)
+        private void ApplyProperties(IDevice device, ReadOnlyDictionary<uint, byte> deviceValues)
         {
             if (!Devices.Contains(device))
             {
                 throw new ArgumentException("Specified device not in universe", nameof(device));
             }
+            
 
-            var channels = device.Channels.ToArray();
-
-            for (uint i = 0; i < deviceValues.Length; i++)
+            foreach(var ch in device.Channels)
             {
-                _values[channels[i] - 1] = deviceValues[i];
+                _values[ch - 1] = deviceValues[ch];
             }
 
             Hooks?.Invoke(this, ref _values);

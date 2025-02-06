@@ -13,9 +13,9 @@ namespace DmxLib.Testing
             _layout = layout;
         }
 
-        public void Update(Device device, ReadOnlyDictionary<DeviceProperty, object> properties, byte[] values)
+        public void Update(Device device, ReadOnlyDictionary<DeviceProperty, object> properties, Dictionary<uint, byte> values)
         {
-            var color = properties[Program.PropertyColor] as Color;
+            var color = (Color) properties[Program.PropertyColor];
             var dimming = (double) properties[Program.PropertyDimming];
 
             if (!_layout.Contains('d'))
@@ -23,21 +23,21 @@ namespace DmxLib.Testing
                 color = Color.FromRGB(color.R * dimming, color.G * dimming, color.B * dimming);
             }
 
-            for (int i = 0; i < _layout.Length; i++)
+            for (var i = 0; i < _layout.Length; i++)
             {
                 switch (_layout[i])
                 {
                     case 'r':
-                        values[i] = (byte) (color.R * 255);
+                        values[device.Channels[i]] = (byte) (color.R * 255);
                         break;
                     case 'g':
-                        values[i] = (byte) (color.G * 255);
+                        values[device.Channels[i]] = (byte) (color.G * 255);
                         break;
                     case 'b':
-                        values[i] = (byte) (color.B * 255);
+                        values[device.Channels[i]] = (byte) (color.B * 255);
                         break;
                     case 'd':
-                        values[i] = (byte) (dimming * 255);
+                        values[device.Channels[i]] = (byte) (dimming * 255);
                         break;
                 }
             }
@@ -48,7 +48,7 @@ namespace DmxLib.Testing
             return value is Color || value is double;
         }
 
-        public IEnumerable<object> ValidValues(DeviceProperty property)
+        public ReadOnlyCollection<object> ValidValues(DeviceProperty property)
         {
             throw new System.ArgumentException();
         }

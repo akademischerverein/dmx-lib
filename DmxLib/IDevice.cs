@@ -8,14 +8,14 @@ namespace DmxLib
     {
         object Get(DeviceProperty property);
         void Set(DeviceProperty property, object value);
-        IEnumerable<object> ValidValues(DeviceProperty property);
+        ReadOnlyCollection<object> ValidValues(DeviceProperty property);
         bool IsValidValue(DeviceProperty property, object o);
-        byte[] ApplyProperties(ReadOnlyDictionary<DeviceProperty, object> properties);
+        ReadOnlyDictionary<uint, byte> ApplyProperties(ReadOnlyDictionary<DeviceProperty, object> properties);
         ReadOnlyCollection<DeviceProperty> SupportedProperties { get; }
         string Name { get; }
-        IEnumerable<IDevice> Children { get; }
-        IEnumerable<IDevice> AllChildren { get; }
-        List<uint> Channels { get; }
+        ReadOnlyCollection<IDevice> Children { get; }
+        ReadOnlyCollection<IDevice> AllChildren { get; }
+        ReadOnlyCollection<uint> Channels { get; }
         Universe.ApplyPropertiesDelegate ApplyEvent { get; set; }
     }
 }

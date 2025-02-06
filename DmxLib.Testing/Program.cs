@@ -11,8 +11,8 @@ namespace DmxLib.Testing
     {
         public static void Main(string[] args)
         {
-            ProgramScene.MainScene(args);
-            return;
+            //ProgramScene.MainScene(args);
+            //return;
             Console.WriteLine("Hello World!");
             var sink = new AvSink("192.168.0.6", 5120);
             var sinkThread = new Thread(sink.Commit);
@@ -50,7 +50,7 @@ namespace DmxLib.Testing
                         break;
                     case "Dimmer":
                     case "Blinder":
-                        var devDimming = new Device(name, width, ch, new IHandler[]{new DimmerHandler(0)});
+                        var devDimming = new Device(name, width, ch, new IHandler[]{new DimmerHandler()});
                         //uni.AddDevice(devDimming);
                         devices.Add(devDimming);
                         devDimming.Set(PropertyDimming, 0.0);

@@ -18,8 +18,8 @@ namespace DmxLib.Testing
 
             if (cue.Property.Equals(Program.PropertyColor))
             {
-                var currentColor = cue.Device.Get(Program.PropertyColor) as Color;
-                var targetColor = cue.Value as Color;
+                var currentColor = (Color)cue.Device.Get(Program.PropertyColor);
+                var targetColor = (Color)cue.Value;
 
                 var h = targetColor.H - currentColor.H;
                 if (h < 0.0)
@@ -90,7 +90,7 @@ namespace DmxLib.Testing
                         break;
                     case "Dimmer":
                     case "Blinder":
-                        var devDimming = new Device(name, width, ch, new IHandler[]{new DimmerHandler(0)});
+                        var devDimming = new Device(name, width, ch, new IHandler[]{new DimmerHandler()});
                         //uni.AddDevice(devDimming);
                         devices.Add(devDimming);
                         devDimming.Set(Program.PropertyDimming, 0.0);

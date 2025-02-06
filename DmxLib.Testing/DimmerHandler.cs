@@ -5,16 +5,9 @@ namespace DmxLib.Testing
 {
     public class DimmerHandler : IHandler
     {
-        private readonly uint _idx;
-
-        public DimmerHandler(uint idx)
+        public void Update(Device device, ReadOnlyDictionary<DeviceProperty, object> properties, Dictionary<uint, byte> values)
         {
-            _idx = idx;
-        }
-        
-        public void Update(Device device, ReadOnlyDictionary<DeviceProperty, object> properties, byte[] values)
-        {
-            values[_idx] = (byte) (255 * (double)properties[Program.PropertyDimming]);
+            values[device.Channels[0]] = (byte) (255 * (double)properties[Program.PropertyDimming]);
         }
 
         public bool IsValidValue(DeviceProperty property, object o)
@@ -22,11 +15,11 @@ namespace DmxLib.Testing
             return o is double;
         }
 
-        public IEnumerable<object> ValidValues(DeviceProperty property)
+        public ReadOnlyCollection<object> ValidValues(DeviceProperty property)
         {
             throw new System.ArgumentException();
         }
 
-        public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(new DeviceProperty[]{Program.PropertyDimming});
+        public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(new[]{Program.PropertyDimming});
     }
 }

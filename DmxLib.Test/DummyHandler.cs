@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace DmxLib.Test
 {
@@ -9,7 +10,7 @@ namespace DmxLib.Test
         static internal DeviceProperty testProp = DeviceProperty.RegisterProperty("unitTestDummy", typeof(uint), 0);
         //internal DeviceProperty testProp2 = DeviceProperty.RegisterProperty("unitTestDummy2", typeof(uint), 0);
         
-        public void Update(Device device, ReadOnlyDictionary<DeviceProperty, object> properties, byte[] values) {}
+        public void Update(Device device, ReadOnlyDictionary<DeviceProperty, object> properties, Dictionary<uint, byte> values) {}
 
         public bool IsValidValue(DeviceProperty property, object o)
         {
@@ -20,14 +21,14 @@ namespace DmxLib.Test
             throw new ArgumentException();
         }
 
-        public IEnumerable<object> ValidValues(DeviceProperty property)
+        public ReadOnlyCollection<object> ValidValues(DeviceProperty property)
         {
             if (property == testProp)
             {
-                return new object[]
+                return new ReadOnlyCollection<object>(new object[]
                 {
                     (uint) 0, (uint) 2, (uint) 4, (uint) 6
-                };
+                }.ToList());
             }
             throw new ArgumentException();
         }
