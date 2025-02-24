@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using DmxLib.Util;
@@ -18,7 +19,7 @@ namespace DmxLib.Testing
             var color = (Color) properties[Program.PropertyColor];
             var dimming = (double) properties[Program.PropertyDimming];
 
-            if (!_layout.Contains('d'))
+            if (!_layout.Contains('d', StringComparison.Ordinal))
             {
                 color = Color.FromRGB(color.R * dimming, color.G * dimming, color.B * dimming);
             }
