@@ -1,22 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Title>DmxLib</Title>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Title>DmxLib</Title>
-        <Authors>Akademischer Verein an der TU Darmstadt</Authors>
-        <LangVersion>7.3</LangVersion>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Nerdbank.GitVersioning" Version="3.7.115">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\DmxLib.Util\DmxLib.Util.csproj" />
-    </ItemGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\DmxLib.Util\DmxLib.Util.csproj" />
+  </ItemGroup>
 </Project>
