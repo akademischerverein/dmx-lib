@@ -16,7 +16,7 @@ namespace DmxLib.Test
 
             var numChannels = definition.NumChannels;
 
-            Assert.AreEqual((uint)6, numChannels);
+            Assert.AreEqual((uint)5, numChannels);
         }
 
         [TestMethod]

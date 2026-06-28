@@ -8,7 +8,7 @@ namespace DmxLib.Test.Builders
     {
         private readonly List<ICapability> _capabilities = [];
         private ushort _address = 1;
-        private uint _nextChannelOffset = 1;
+        private uint _nextChannelOffset = 0;
 
         public FixtureBuilder Rgb()
         {
