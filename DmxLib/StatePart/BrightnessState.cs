@@ -6,6 +6,6 @@ namespace DmxLib.StatePart
 {
     public class BrightnessState : FixtureStatePart
     {
-        public float Brightness { get; set; } = 1.0f;
+        public float Brightness { get; set; } = 0.0f;
     }
 }

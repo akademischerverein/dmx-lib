@@ -6,7 +6,7 @@ using DmxLib.Util;
 
 namespace DmxLib.Testing
 {
-    public class SceneHarmony
+    /*public class SceneHarmony
     {
         private readonly IDevice[] _a;
         private const uint Fade = 120000;
@@ -49,5 +49,5 @@ namespace DmxLib.Testing
             }
             cues.AddRange(_cues);
         }
-    }
+    }*/
 }

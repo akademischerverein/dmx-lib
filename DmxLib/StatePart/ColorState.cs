@@ -7,6 +7,6 @@ namespace DmxLib.StatePart
 {
     public class ColorState : FixtureStatePart
     {
-        public Color Color { get; set; }
+        public Color Color { get; set; } = Color.FromRGB(0, 0, 0);
     }
 }

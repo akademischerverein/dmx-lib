@@ -1,8 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using DmxLib.Capability;
+using DmxLib.Rendering;
+using DmxLib.StatePart;
 using Color = DmxLib.Util.Color;
 
 namespace DmxLib.Testing
@@ -11,9 +14,42 @@ namespace DmxLib.Testing
     {
         public static void Main(string[] args)
         {
+            var drgb = new FixtureDefinition { Capabilities = [new DimmerCapability { ChannelOffset = 0 }, new ColorCapability { ChannelOffset = 1, Emitters = [ColorCapability.EmitterColor.Red, ColorCapability.EmitterColor.Green, ColorCapability.EmitterColor.Blue] }] };
+
+            var universe = new Universe
+            {
+                Id = 1,
+                Fixtures = [
+                    new Fixture {
+                        Address = 81,
+                        Definition = drgb
+                    },
+                    new Fixture {
+                        Address = 85,
+                        Definition = drgb
+                    },
+                    new Fixture {
+                        Address = 89,
+                        Definition = drgb
+                    },
+                    new Fixture {
+                        Address = 93,
+                        Definition = drgb
+                    }
+                ]
+            };
+
+            var frame = universe.CreateState();
+            frame.Get(universe.Fixtures[0]).Get<ColorState>().Color = Color.FromRGB(1, 0, 0);
+            frame.Get(universe.Fixtures[0]).Get<BrightnessState>().Brightness = 0.5f;
+
+            var renderer = new UniverseRenderer(new FixtureRenderer { Resolver = new RenderingResolver { Renderer = [new ColorRenderer(), new DimmerRenderer()] } });
+            var buffer = renderer.Render(frame);
+            Console.WriteLine("hello world");
+
             //ProgramScene.MainScene(args);
             //return;
-            Console.WriteLine("Hello World!");
+            /*Console.WriteLine("Hello World!");
             var sink = new AvSink("192.168.0.6", 5120);
             var sinkThread = new Thread(sink.Commit);
 
@@ -113,11 +149,11 @@ namespace DmxLib.Testing
                     var d = double.Parse(Console.ReadLine());
                     dev.Set(PropertyDimming, d);   
                 }
-            }
+            }*/
         }
 
-        public static readonly DeviceProperty PropertyColor = DeviceProperty.RegisterProperty("color",
+        /*public static readonly DeviceProperty PropertyColor = DeviceProperty.RegisterProperty("color",
             typeof(Color), Color.FromRGB(0, 0, 0), (g, d) => ((Color)g).R != 0 || ((Color)g).G != 0 || ((Color)g).B != 0 ? g : d);
-        public static readonly DeviceProperty PropertyDimming = DeviceProperty.RegisterProperty("dimming", typeof(double), 1.0, (g, d) => (double)g * (double)d);
+        public static readonly DeviceProperty PropertyDimming = DeviceProperty.RegisterProperty("dimming", typeof(double), 1.0, (g, d) => (double)g * (double)d);*/
     }
 }

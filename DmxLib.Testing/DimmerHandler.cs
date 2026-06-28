@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 
 namespace DmxLib.Testing
 {
-    public class DimmerHandler : IHandler
+    /*public class DimmerHandler : IHandler
     {
         public void Update(Device device, ReadOnlyDictionary<DeviceProperty, object> properties, Dictionary<uint, byte> values)
         {
@@ -21,5 +21,5 @@ namespace DmxLib.Testing
         }
 
         public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(new[]{Program.PropertyDimming});
-    }
+    }*/
 }

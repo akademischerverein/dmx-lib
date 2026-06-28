@@ -8,7 +8,7 @@ using DmxLib.Util;
 
 namespace DmxLib.Testing
 {
-    public class ProgramScene
+    /*public class ProgramScene
     {
         private static Scene _scene;
         public static object HsvTransition(Cue cue, DateTime now, TimeSpan delta, DateTime start)
@@ -124,5 +124,5 @@ namespace DmxLib.Testing
                 
             }
         }
-    }
+    }*/
 }

@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace DmxLib.Testing
 {
-    public class AvSink : ISink
+    /*public class AvSink : ISink
     {
         private readonly IPEndPoint _server;
         private readonly byte[] _out = new byte[512];
@@ -31,5 +31,5 @@ namespace DmxLib.Testing
                 _out[i] = values[i];
             }
         }
-    }
+    }*/
 }

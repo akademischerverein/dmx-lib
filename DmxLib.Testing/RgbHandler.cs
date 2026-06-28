@@ -5,7 +5,7 @@ using DmxLib.Util;
 
 namespace DmxLib.Testing
 {
-    public class RgbHandler : IHandler
+    /*public class RgbHandler : IHandler
     {
         private readonly string _layout;
 
@@ -55,5 +55,5 @@ namespace DmxLib.Testing
         }
 
         public ReadOnlyCollection<DeviceProperty> SupportedProperties => new ReadOnlyCollection<DeviceProperty>(new DeviceProperty[]{Program.PropertyColor, Program.PropertyDimming});
-    }
+    }*/
 }

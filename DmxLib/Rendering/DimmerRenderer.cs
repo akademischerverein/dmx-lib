@@ -6,13 +6,13 @@ using DmxLib.StatePart;
 
 namespace DmxLib.Rendering
 {
-    public class DimmerRenderer : ICapabilityRenderer<DimmerCapability>
+    public class DimmerRenderer : CapabilityRenderer<DimmerCapability>
     {
-        public void Render(RenderContext ctx, DimmerCapability capability)
+        public override void Render(RenderContext ctx, DimmerCapability capability)
         {
             var brightnessState = ctx.State.Get<BrightnessState>();
 
-            ctx.Buffer.Span[(int)(ctx.StartAddress + capability.ChannelOffset)] = (byte)(brightnessState.Brightness * 255);
+            ctx.Buffer.Span[(int)(ctx.StartAddress + capability.ChannelOffset - 1)] = (byte)(brightnessState.Brightness * 255);
         }
     }
 }

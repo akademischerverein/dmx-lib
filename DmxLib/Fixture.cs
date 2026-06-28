@@ -8,6 +8,6 @@ namespace DmxLib
     {
         public required FixtureDefinition Definition { get; init; }
 
-        public required uint Address { get; init; }
+        public required ushort Address { get; init; }
     }
 }

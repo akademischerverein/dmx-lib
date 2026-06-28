@@ -7,9 +7,9 @@ using DmxLib.StatePart;
 
 namespace DmxLib.Rendering
 {
-    public class ColorRenderer : ICapabilityRenderer<ColorCapability>
+    public class ColorRenderer : CapabilityRenderer<ColorCapability>
     {
-        public void Render(RenderContext ctx, ColorCapability capability)
+        public override void Render(RenderContext ctx, ColorCapability capability)
         {
             var colorState = ctx.State.Get<ColorState>();
             var brightnessState = ctx.State.Get<BrightnessState>();
@@ -20,7 +20,7 @@ namespace DmxLib.Rendering
                 brightness = brightnessState.Brightness;
             }
 
-            var adjUniverse = ctx.Buffer.Span.Slice((int)(ctx.StartAddress + capability.ChannelOffset));
+            var adjUniverse = ctx.Buffer.Span.Slice((int)(ctx.StartAddress + capability.ChannelOffset - 1));
 
             for(int i = 0; i<capability.Emitters.Count; i++)
             {
