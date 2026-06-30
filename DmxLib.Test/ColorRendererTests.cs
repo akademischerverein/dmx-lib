@@ -49,6 +49,67 @@ namespace DmxLib.Test
             BufferAssert.OnlyChannelsChanged(buffer, startAddress, startAddress + 1, startAddress + 2, startAddress + 3);
         }
 
+        [DataTestMethod]
+        [DataRow(-0.25f, 0)]
+        [DataRow(1.25f, 255)]
+        public void RgbWithoutDimmerClampsBrightnessOutsideNormalizedRange(float brightness, int expectedRed)
+        {
+            const int startAddress = 21;
+            var fixture = new FixtureBuilder().Rgb().Address(startAddress).Build();
+            var state = fixture.Definition.CreateState();
+            state.Get<BrightnessState>().Brightness = brightness;
+            state.Get<ColorState>().Color = TestColors.Red;
+            var buffer = BufferAssert.CreateSentinelBuffer();
+
+            RendererTestFactory.CreateFixtureRenderer().Render(fixture, state, buffer);
+
+            BufferAssert.ContainsSlice(buffer, startAddress, (byte)expectedRed, Off, Off);
+            BufferAssert.OnlyChannelsChanged(buffer, startAddress, startAddress + 1, startAddress + 2);
+        }
+
+        [TestMethod]
+        public void RgbRendersOnLastThreeDmxChannels()
+        {
+            const int startAddress = 510;
+            var fixture = new FixtureBuilder().Rgb().Address(startAddress).Build();
+            var state = fixture.Definition.CreateState();
+            state.Get<BrightnessState>().Brightness = 1.0f;
+            state.Get<ColorState>().Color = TestColors.Cyan;
+            var buffer = BufferAssert.CreateSentinelBuffer();
+
+            RendererTestFactory.CreateFixtureRenderer().Render(fixture, state, buffer);
+
+            BufferAssert.ContainsSlice(buffer, startAddress, Off, Full, Full);
+            BufferAssert.OnlyChannelsChanged(buffer, startAddress, startAddress + 1, startAddress + 2);
+        }
+
+        [DataTestMethod]
+        [DataRow(nameof(TestColors.Green), 0, 255, 0)]
+        [DataRow(nameof(TestColors.Blue), 0, 0, 255)]
+        [DataRow(nameof(TestColors.Yellow), 255, 255, 0)]
+        [DataRow(nameof(TestColors.Magenta), 255, 0, 255)]
+        public void RgbRendersAdditionalColors(string colorName, int expectedRed, int expectedGreen, int expectedBlue)
+        {
+            const int startAddress = 33;
+            var fixture = new FixtureBuilder().Rgb().Address(startAddress).Build();
+            var state = fixture.Definition.CreateState();
+            state.Get<BrightnessState>().Brightness = 1.0f;
+            state.Get<ColorState>().Color = colorName switch
+            {
+                nameof(TestColors.Green) => TestColors.Green,
+                nameof(TestColors.Blue) => TestColors.Blue,
+                nameof(TestColors.Yellow) => TestColors.Yellow,
+                nameof(TestColors.Magenta) => TestColors.Magenta,
+                _ => throw new AssertFailedException($"Unknown test color {colorName}."),
+            };
+            var buffer = BufferAssert.CreateSentinelBuffer();
+
+            RendererTestFactory.CreateFixtureRenderer().Render(fixture, state, buffer);
+
+            BufferAssert.ContainsSlice(buffer, startAddress, (byte)expectedRed, (byte)expectedGreen, (byte)expectedBlue);
+            BufferAssert.OnlyChannelsChanged(buffer, startAddress, startAddress + 1, startAddress + 2);
+        }
+
         [TestMethod]
         public void WhiteRendersAllRgbChannelsAtFullOutput()
         {

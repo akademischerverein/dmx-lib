@@ -40,5 +40,37 @@ namespace DmxLib.Test
             BufferAssert.ContainsSlice(buffer, startAddress, 255, 0, 0, 127);
             BufferAssert.OnlyChannelsChanged(buffer, startAddress, startAddress + 1, startAddress + 2, startAddress + 3);
         }
+
+        [TestMethod]
+        public void SameBrightnessScalesRgbOnlyWhenFixtureHasNoDedicatedDimmer()
+        {
+            const int simulatedDimmerAddress = 41;
+            const int dedicatedDimmerAddress = 51;
+            var simulatedDimmerFixture = new FixtureBuilder().Rgb().Address(simulatedDimmerAddress).Build();
+            var dedicatedDimmerFixture = new FixtureBuilder().Rgb().Dimmer().Address(dedicatedDimmerAddress).Build();
+            var simulatedState = simulatedDimmerFixture.Definition.CreateState();
+            simulatedState.Get<ColorState>().Color = TestColors.Red;
+            simulatedState.Get<BrightnessState>().Brightness = 0.5f;
+            var dedicatedState = dedicatedDimmerFixture.Definition.CreateState();
+            dedicatedState.Get<ColorState>().Color = TestColors.Red;
+            dedicatedState.Get<BrightnessState>().Brightness = 0.5f;
+            var buffer = BufferAssert.CreateSentinelBuffer();
+            var renderer = RendererTestFactory.CreateFixtureRenderer();
+
+            renderer.Render(simulatedDimmerFixture, simulatedState, buffer);
+            renderer.Render(dedicatedDimmerFixture, dedicatedState, buffer);
+
+            BufferAssert.ContainsSlice(buffer, simulatedDimmerAddress, 127, 0, 0);
+            BufferAssert.ContainsSlice(buffer, dedicatedDimmerAddress, 255, 0, 0, 127);
+            BufferAssert.OnlyChannelsChanged(
+                buffer,
+                simulatedDimmerAddress,
+                simulatedDimmerAddress + 1,
+                simulatedDimmerAddress + 2,
+                dedicatedDimmerAddress,
+                dedicatedDimmerAddress + 1,
+                dedicatedDimmerAddress + 2,
+                dedicatedDimmerAddress + 3);
+        }
     }
 }

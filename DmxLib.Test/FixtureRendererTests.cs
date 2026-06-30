@@ -1,3 +1,4 @@
+using System;
 using DmxLib.Capability;
 using DmxLib.Rendering;
 using DmxLib.StatePart;
@@ -41,6 +42,18 @@ namespace DmxLib.Test
             Assert.IsInstanceOfType(colorRenderer, typeof(ColorRenderer));
             Assert.IsInstanceOfType(dimmerRenderer, typeof(DimmerRenderer));
             Assert.IsInstanceOfType(relayRenderer, typeof(RelayRenderer));
+        }
+
+        [TestMethod]
+        public void ResolverThrowsForUnknownCapabilityType()
+        {
+            var resolver = RendererTestFactory.CreateResolver();
+
+            Assert.ThrowsException<InvalidOperationException>(() => resolver.Resolve(typeof(UnknownCapability)));
+        }
+
+        private sealed class UnknownCapability
+        {
         }
     }
 }
