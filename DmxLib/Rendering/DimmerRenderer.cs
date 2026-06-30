@@ -12,7 +12,7 @@ namespace DmxLib.Rendering
         {
             var brightnessState = ctx.State.Get<BrightnessState>();
 
-            ctx.Buffer.Span[(int)(ctx.StartAddress + capability.ChannelOffset - 1)] = (byte)(brightnessState.Brightness * 255);
+            ctx.Buffer.Span[(int)(ctx.StartAddress + capability.ChannelOffset - 1)] = (byte)(Math.Clamp(brightnessState.Brightness, 0.0, 1.0) * 255);
         }
     }
 }
