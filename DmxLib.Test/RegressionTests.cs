@@ -72,5 +72,34 @@ namespace DmxLib.Test
                 dedicatedDimmerAddress + 2,
                 dedicatedDimmerAddress + 3);
         }
+
+        [DataTestMethod]
+        [DataRow(nameof(TestColors.Red))]
+        [DataRow(nameof(TestColors.Green))]
+        [DataRow(nameof(TestColors.Blue))]
+        [DataRow(nameof(TestColors.White))]
+        [DataRow(nameof(TestColors.Magenta))]
+        public void ZeroBrightnessSuppressesRgbOutputWithoutDedicatedDimmer(string colorName)
+        {
+            const int startAddress = 70;
+            var fixture = new FixtureBuilder().Rgb().Address(startAddress).Build();
+            var state = fixture.Definition.CreateState();
+            state.Get<ColorState>().Color = colorName switch
+            {
+                nameof(TestColors.Red) => TestColors.Red,
+                nameof(TestColors.Green) => TestColors.Green,
+                nameof(TestColors.Blue) => TestColors.Blue,
+                nameof(TestColors.White) => TestColors.White,
+                nameof(TestColors.Magenta) => TestColors.Magenta,
+                _ => throw new AssertFailedException($"Unknown test color {colorName}."),
+            };
+            state.Get<BrightnessState>().Brightness = 0.0f;
+            var buffer = BufferAssert.CreateSentinelBuffer();
+
+            RendererTestFactory.CreateFixtureRenderer().Render(fixture, state, buffer);
+
+            BufferAssert.ContainsSlice(buffer, startAddress, 0, 0, 0);
+            BufferAssert.OnlyChannelsChanged(buffer, startAddress, startAddress + 1, startAddress + 2);
+        }
     }
 }
